@@ -102,3 +102,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# example yoi
+example/yoi/*
+example/*.lnk
+example/www
