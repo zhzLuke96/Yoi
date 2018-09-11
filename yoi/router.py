@@ -27,7 +27,9 @@ class Router(object):
                 bin = file.read()
             except:
                 raise NotFoundError()
-            return Response(bin, content_type=mime_type(file_path))
+            resp = Response(bin, content_type=mime_type(file_path))
+            resp.add_header("Cache-Control", "public, max-age=31536000")
+            return resp
         self.static_router.append((pattern + r"([\s\S]+)?$", _))
 
     def match(self, path):

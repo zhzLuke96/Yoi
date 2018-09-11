@@ -16,18 +16,14 @@ class easy_Cache(dict):
         self[id] = (obj, int(time.time()))
         return id
 
-    def load(self, id, default={}):
-        obj, t = self.get(id, (None, 0))
+    def load(self, id, default=None):
+        obj, t = self.get(id, (default, 0))
         if time.time() - t > self.max_age:
-            self.pop(id)
-            return default
-        else:
-            if obj is None:
-                self.save(default, id)
-                return default
-            else:
-                return obj
-
+            try:
+                self.pop(id)
+            except:
+                pass
+        return obj
 
 class _Session(object):
     def __init__(self, factory=easy_Cache(), id_string="_session_ID_"):
@@ -40,6 +36,11 @@ class _Session(object):
         if _id is None:
             _id = self.factory.save({})
             cookies[self.cookie_id] = _id
+        return _id
+
+    def new_ID(self):
+        _id = self.factory.save({})
+        cookies[self.cookie_id] = _id
         return _id
 
     @property

@@ -35,7 +35,8 @@ def hello(request, name):
 
 @app.Router(r"/nihao/([^/]*)/?$")
 def nihao(request, name):
-    return html(f"<h1>nihao {name}!</h1>")
+    tail = request.args.get("tail","none-tail")
+    return html(f"<h1>nihao {name}! [{tail}]</h1>")
 
 
 # app = Application(Router=router)

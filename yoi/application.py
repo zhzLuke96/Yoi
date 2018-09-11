@@ -27,14 +27,17 @@ class Application(object):
         self.Router = Router
 
     def __call__(self, environ, start_response):
-        # print(environ)
+        # from pprint import pprint; pprint(environ)
         try:
             request = Request(environ)
             from .globals import cookies, Session, g
             g["environ"] = environ
             if 'HTTP_COOKIE' in environ:
                 cookies.push(environ['HTTP_COOKIE'])
+            sess = Session.this
             s_id = Session.id
+            if sess is None:
+                s_id = Session.new_ID()
 
             # exec_match
             callback, args = self.Router.match(request.path)
@@ -42,11 +45,15 @@ class Application(object):
             # exec_match EOF
 
             if 'HTTP_COOKIE' in environ:
-                cookies.pop()
+                try:
+                    cookies.pop()
+                except:
+                    pass
             response = user_response if isinstance(
                 user_response, Response) else Response(user_response)
             response.add_header('Set-Cookie', session_cookie_string(s_id))
-        except NotFoundError as e:
+        except NotFoundError:
             response = Response("<h1>Not Found</h1>", status=404)
+        # print(response.headers)
         start_response(response.status, response.headers.items())
         return iter(response)
