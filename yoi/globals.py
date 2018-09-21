@@ -2,9 +2,9 @@ from .ctx import __ctx__stack
 import time
 from .utils import session_id, getId
 
-__all__ = ("g", "cookies", "Session")
+__all__ = ("g",)
 
-g = {}
+g = dict()
 cookies = __ctx__stack()
 
 

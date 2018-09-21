@@ -44,7 +44,7 @@ def session_id(environ):
     return hashlib.sha1(q_s.encode("utf-8")).hexdigest()
 
 
-def session_cookie_string(id, cookie_key='_session_ID_'):
+def session_cookie_string(id, cookie_key='_session_ID_', ages = 604800):
     try:
         from Cookie import SimpleCookie
     except ImportError:
@@ -52,4 +52,6 @@ def session_cookie_string(id, cookie_key='_session_ID_'):
     cookie = SimpleCookie()
     cookie[cookie_key] = id
     cookie[cookie_key]['path'] = '/'
+    cookie[cookie_key]['HttpOnly'] = True
+    cookie[cookie_key]['max-age'] = ages
     return cookie[cookie_key].OutputString()

@@ -4,7 +4,6 @@ from .response import Response, mime_type
 __all__ = ("NotFoundError", "Router")
 
 
-
 class NotFoundError(Exception):
     """ url pattern not found"""
     pass
@@ -15,8 +14,8 @@ class Router(object):
         self.routing_table = []
         self.static_router = []
 
-    def add_router(self, pattern, callback):
-        self.routing_table.append((pattern, callback))
+    def add_router(self, pattern, callback, methods=["GET"]):
+        self.routing_table.append((pattern, callback, methods))
 
     def add_static_folder(self, pattern, folder_name):
         def _(request, file_path):
@@ -30,21 +29,21 @@ class Router(object):
             resp = Response(bin, content_type=mime_type(file_path))
             resp.add_header("Cache-Control", "public, max-age=31536000")
             return resp
-        self.static_router.append((pattern + r"([\s\S]+)?$", _))
+        self.static_router.append((pattern + r"([\s\S]+)?$", _, ["GET"]))
 
-    def match(self, path):
-        table = sorted(self.static_router + self.routing_table,
-                       key=lambda x: -len(x[0]))
+    def match(self, path, method):
+        table = [row for row in sorted(
+            self.static_router + self.routing_table, key=lambda x: -len(x[0])) if method in row[2]]
 
-        for p, c in table:
+        for p, c, _m in table:
             m = re.match(p, path)
             if m:
                 return (c, m.groups())
 
         raise NotFoundError()
 
-    def __call__(self, *args):
+    def __call__(self, *args, methods="GET"):
         def _(func):
             for pattern in args:
-                self.add_router(pattern, func)
+                self.add_router(pattern, func, methods)
         return _

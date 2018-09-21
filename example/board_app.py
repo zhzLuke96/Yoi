@@ -11,11 +11,11 @@ app = Application()
 
 g["posts"] = []
 
-@app.Router(r"/?$")
+@app.Router(r"/?$", method = "GET")
 def index(request):
     return Redirect_resp("/home/")
 
-@app.Router(r"/post/?$")
+@app.Router(r"/post/?$", method = "POST")
 def post(request):
     content = request.args.get("content", None)
     print("new post ====>>> ",content)

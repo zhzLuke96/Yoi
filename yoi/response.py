@@ -14,6 +14,8 @@ def mime_type(fileName):
 
 class Response(object):
     def __init__(self, response=None, status=200, charset='UTF-8', content_type='text/html'):
+        if not (isinstance(response,str) or isinstance(response,bytes)):
+            response = str(response)
         self.response = "" if response is None else response
         self.charset = charset
         self.headers = Headers()
