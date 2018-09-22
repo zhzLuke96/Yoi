@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <input  class="file" type="file" id="fafafa" name="fileupload" />
+    <input type="button" value="提交XHR" onclick="xhrSubmit();"/>
+    <script type="text/javascript">
+        function xhrSubmit() {
+            var file_obj = document.getElementById('fafafa').files[0];
+
+            var fd = new FormData();
+            fd.append('file', file_obj);
+            xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload/', true)
+            xhr.send(fd);
+            xhr.onreadystatechange = function() {
+                //后端接受完毕
+                if (xhr.readyState == 4) {
+                    // var obj = JSON.parse(xhr.responseText);
+                    // console.log(obj);
+                }
+            };
+        }
+    </script>
+</body>
+
+</html>

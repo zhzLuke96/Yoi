@@ -54,6 +54,10 @@ def Redirect_resp(path):
     resp.add_header("Location", ltion)
     return resp
 
+def file_resp(filename):
+    with open(filename,"rb") as f:
+        return Response(f.read())
+
 
 if __name__ == '__main__':
     print(HTTPCODE.get(200))
