@@ -9,15 +9,23 @@ __all__ = ("Application",)
 
 def call_warpper(callback, request, args):
     varnames = callback.__code__.co_varnames
-    if varnames[0] == "request":
+    argcount = callback.__code__.co_argcount
+    if argcount != 0 and varnames[0] == "request":
         return callback(request, *args)
     return callback(*args)
 
 
+def set_globals(key, value):
+    from .globals import g
+    g[key] = value
+
+
 class Application(object):
-    def __init__(self, Router=Router(), session_factroy=factory_simple(), **kwargs):
-        self.Router = Router
+    def __init__(self, router=Router(), session_factroy=factory_simple(), config=dict(), **kwargs):
+        self.router = router
         self.session_pool = session_factroy
+        self.config = config
+        set_globals("config", config)
 
     def __call__(self, environ, start_response):
         # from pprint import pprint; pprint(environ)
@@ -26,13 +34,12 @@ class Application(object):
             request = Request(environ, self.session_pool)
 
             # updata globals value
-            from .globals import g
-            g["environ"] = environ
-            g["request"] = request
-            g["session"] = request.session
+            set_globals("environ", environ)
+            set_globals("request", request)
+            set_globals("session", request.session)
 
             # exec_match
-            callback, args = self.Router.match(request.path, request.method)
+            callback, args = self.router.match(request.path, request.method)
 
             user_response = call_warpper(callback, request, args)
             # exec_match EOF

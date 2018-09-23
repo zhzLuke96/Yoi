@@ -18,6 +18,8 @@ class Router(object):
         self.routing_table.append((pattern, callback, methods))
 
     def add_static_folder(self, pattern, folder_name):
+        if folder_name[-1] != "/":
+            folder_name += "/"
         def _(request, file_path):
             if file_path is None or file_path == "":
                 file_path = "index.html"
@@ -33,7 +35,9 @@ class Router(object):
 
     def match(self, path, method):
         table = [row for row in sorted(
-            self.static_router + self.routing_table, key=lambda x: -len(x[0])) if method in row[2]]
+            self.routing_table, key=lambda x: -x[0].count("/")) if method in row[2]]
+        table += [row for row in sorted(
+            self.static_router, key=lambda x: -x[0].count("/")) if method in row[2]]
 
         for p, c, _m in table:
             m = re.match(p, path)
@@ -42,7 +46,7 @@ class Router(object):
 
         raise NotFoundError()
 
-    def __call__(self, *args, methods="GET"):
+    def __call__(self, *args, methods=["GET"]):
         def _(func):
             for pattern in args:
                 self.add_router(pattern, func, methods)
