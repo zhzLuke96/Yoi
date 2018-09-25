@@ -23,7 +23,7 @@ def html(text):
 app.Router.add_static_folder("/", "./www/")
 
 
-@app.Router(r"/hello/([^/]*)/?$", r"/he/([^/]*)/?$")
+@app.router(r"/hello/([^/]*)/?$", r"/he/([^/]*)/?$")
 def hello(name):
     request = g["request"]
     # print("request")
@@ -32,7 +32,7 @@ def hello(name):
     return html(f"<h1>hello {name}!</h1><br>{cookies['id']}")
 
 
-@app.Router(r"/nihao/([^/]*)/?$")
+@app.router(r"/nihao/([^/]*)/?$")
 def nihao(name):
     request = g["request"]
     tail = request.args.get("tail", "none-tail")
@@ -44,7 +44,7 @@ def nihao(name):
     return html(f"<h1>nihao {name}! [{tail}]</h1>")
 
 
-@app.Router(r"/calc/?$", methods=["POST"])
+@app.router(r"/calc/?$", methods=["POST"])
 def calc_model(request):
     form = request.form
     return str(int(form["b"]) + int(form["w"]) * int(form["x"]))

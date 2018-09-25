@@ -11,11 +11,11 @@ app = Application()
 
 g["posts"] = []
 
-@app.Router(r"/?$", method = "GET")
+@app.router(r"/?$", methods = ["GET"])
 def index(request):
     return Redirect_resp("/home/")
 
-@app.Router(r"/post/?$", method = "POST")
+@app.router(r"/post/?$", methods = ["POST"])
 def post(request):
     content = request.args.get("content", None)
     print("new post ====>>> ",content)
@@ -39,7 +39,7 @@ def html():
     return base(f"""<form action="/post" method="get">content: <input type="text" name="content" /><input type="submit" value="Submit" /></form><br><ul>{lis()}</ul>""")
 
 
-@app.Router(r"/home/?$")
+@app.router(r"/home/?$")
 def home(request):
     return html()
 
@@ -48,11 +48,16 @@ def home(request):
 # app = UppercaseMiddleware(app)
 
 if __name__ == '__main__':
-    from wsgiref.simple_server import make_server
-    # httpd = make_server("127.0.0.1", 8000, app)
-    httpd = make_server("localhost", 8000, app)
-    try:
-        httpd.serve_forever()
-    except:
-        httpd.shutdown()
-        raise
+    from yoi.server.sel_wsgiServer import WSGIServer
+
+    sev = WSGIServer("127.0.0.1",8000).set_application(app)
+    sev.run()
+
+    # from wsgiref.simple_server import make_server
+    # # httpd = make_server("127.0.0.1", 8000, app)
+    # httpd = make_server("localhost", 8000, app)
+    # try:
+    #     httpd.serve_forever()
+    # except:
+    #     httpd.shutdown()
+    #     raise
