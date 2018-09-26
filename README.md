@@ -10,16 +10,17 @@ Asynchronous HTTP server framework for asyncio(come soon) and Python
 - [x] better globals
 - [x] better session (httponly max-age)
 - [x] more_method: post put del...
-- [ ] wsgi_Server
+- [x] wsgi_Server
+- [x] asyncio_server
+- [ ] asyncio_appliction
 - [ ] mimetype_waring
 - [ ] more_Type: json
 - [ ] router for varnames
 - [ ] cache_setting
 - [ ] cache_response
-- [ ] asyncio
 
-> log 18/9/22:
-> <br>好吧，现在才是能用的阶段，但是，几乎不能接受多个连接，我是非常想用协程来搞定，但是py的协程...吐血
+> log 18/9/26:
+> <br>asyncio server done.
 > <br>
 
 

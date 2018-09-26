@@ -1,9 +1,9 @@
 
 from werkzeug.wrappers import Request, Response
 
-# @Request.application
+@Request.application
 def application(environ,request):
-    from pprint import pprint;pprint(environ)
+    # from pprint import pprint;pprint(environ)
     name = request.args.get("name","PyCon")
     return Response([f'<h1>hello {name}!</h1>'])
 
