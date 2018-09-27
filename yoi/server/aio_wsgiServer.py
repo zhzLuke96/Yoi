@@ -60,7 +60,7 @@ class WSGIServer(object):
         request = self.get_url_parameter(lines)
         env = self.get_environ(request, msg, addr)
         start, ret = self.start_response()
-        app_data = await self.application(
+        app_data = await self.application.async_call(
             env, start)
         status, header = ret()
         return app_data, (status, header)
@@ -72,7 +72,7 @@ class WSGIServer(object):
             response += '{0}: {1}\r\n'.format(*header)
         response += '\r\n'
         for data in app_data:
-            response += data
+            response += data if isinstance(data,str) else data.decode()
         return response
 
     def get_url_parameter(self, request_lines):

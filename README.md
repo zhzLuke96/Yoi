@@ -12,7 +12,8 @@ Asynchronous HTTP server framework for asyncio(come soon) and Python
 - [x] more_method: post put del...
 - [x] wsgi_Server
 - [x] asyncio_server
-- [ ] asyncio_appliction
+- [x] asyncio_appliction
+- [x] errorhandler
 - [ ] mimetype_waring
 - [ ] more_Type: json
 - [ ] router for varnames
@@ -32,27 +33,36 @@ come soon..
 # router = Router()
 app = Application()
 
-g["posts"] = []
+@app.Router(r"/?$", r"/home/?$")
+async def index():
+    return file_resp('./index.html')
 
-@app.Router(r"/?$", methods = ["GET"])
-def index():
-    return Redirect_resp("/home/")
+@app.Router(r"/login/?$", methods = ["GET","POST"])
+async def login(request):
+    if request.method is "GET":
+        name = request.args["name"]
+        tags = request.args["tags"]
+    else:
+        name = request.from["name"]
+        tags = request.from["tags"]
+    g["online"][g["session"].sid](str(datetime.now())[:-7], (name,tags))
+    # return f"<h1>hello {name}!</h1><p>you like: {tags}</p>"
+    return "success"
 
-@app.Router(r"/post/?$", methods = ["POST"])
-def post(request):
-    content = request.args.get("content", None)
-    if content is not None:
-        g["posts"].append((g["session"].sid, str(datetime.now())[:-7], content))
-    return "post success!"
 
-def html():
-    # ...
+@app.Router(r"/delay_exit/?$")
+async def delay_exit():
+    await asyncio.sleep(60)
+    del g["online"][g["session"].sid]
+    return "success"
 
-@app.Router(r"/home/?$")
-def home(request):
-    return html()
+@app.errorhandler("404")
+def not_found():
+    return f"<h1>Not Found 404</h1><p>server on {platform.python_version()}</p>"
 
 ```
 
 # 后
-想融合flask和aiohttp于是写了这个东西(其实是练手作...)
+想融合flask和aiohttp于是写了这个东西
+
+more 2 [aioWebpy](https://www.github.com/zhzluke96)
