@@ -26,9 +26,10 @@ def updata_localvars(environ, cur_request):
     from .globals import g, session, request
     g["environ"] = environ
     g["request"] = cur_request
-    request = cur_request
+    # object.__set__(request,cur_request)
+    request.__set__(cur_request)
     g["session"] = cur_request.session
-    session = cur_request.session
+    session.__set__(cur_request.session)
 
 
 class Application(object):

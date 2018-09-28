@@ -12,13 +12,13 @@ app = Application()
 @app.router(r"^/sleep/(.+)/?$", methods=["GET"])
 async def sleep(request, timer):
     time.sleep(int(timer))
-    return f"server sleep {timer}s \n {datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')} \n{cur_request.args}\n{request.args}\n{hash(asyncio.Task.current_task(asyncio.get_event_loop()))}"
+    return f"server sleep {timer}s \n {datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')} \n{cur_request['args']}\n{request.args}\n{hash(asyncio.Task.current_task(asyncio.get_event_loop()))}"
 
 
 @app.router(r"^/aiosleep/(.+)/?$", methods=["GET"])
 async def aiosleep(request, timer):
     await asyncio.sleep(int(timer))
-    return f"server sleep {timer}s \n {datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')} \n{cur_request.args}\n{request.args}\n{hash(asyncio.Task.current_task(asyncio.get_event_loop()))}"
+    return f"server sleep {timer}s \n {datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')} \n{cur_request['args']}\n{request.args}\n{hash(asyncio.Task.current_task(asyncio.get_event_loop()))}"
 
 
 @app.router(r"^/do/?$", methods=["GET"])

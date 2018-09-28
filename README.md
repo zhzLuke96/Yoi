@@ -1,5 +1,5 @@
 # Yoi
-Asynchronous HTTP server framework for asyncio(come soon) and Python
+Asynchronous HTTP server framework for asyncio and Python
 
 # todo
 - [x] router.wrapper
@@ -15,6 +15,7 @@ Asynchronous HTTP server framework for asyncio(come soon) and Python
 - [x] asyncio_appliction
 - [x] errorhandler
 - [x] safe_contentext => g,request,session(not ctx_stack)
+- [x] localvars_proxy Class => request,session
 - [ ] config reader
 - [ ] ~~mimetype_waring~~
 - [ ] more_Type: json
@@ -33,7 +34,7 @@ come soon..
 # example
 ```python
 from yoi.application import Application
-from yoi.globals import g, request as cur_request
+from yoi.globals import g, request, session
 app = Application()
 
 online_table = dict()
@@ -43,21 +44,21 @@ async def index():
     return file_resp('./index.html')
 
 @app.Router(r"/login/?$", methods = ["GET","POST"])
-async def login(request):
+async def login():
     if request.method is "GET":
-        name = request.args["name"]
-        tags = request.args["tags"]
+        name = request["args"]["name"]
+        tags = request["args"]["tags"]
     else:
-        name = request.from["name"]
-        tags = request.from["tags"]
-    online_table[g["session"].sid](str(datetime.now())[:-7], (name,tags))
+        name = request["from"]["name"]
+        tags = request["from"]["tags"]
+    online_table[session["sid"]](str(datetime.now())[:-7], (name,tags))
     return "success"
 
 
 @app.Router(r"/delay_exit/?$")
 async def delay_exit():
     await asyncio.sleep(60)
-    del online_table[g["session"].sid]
+    del online_table[session["sid"]]
     return "success"
 
 @app.errorhandler("404")

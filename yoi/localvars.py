@@ -1,6 +1,6 @@
 import asyncio
 
-__all__ = ("localvars",)
+__all__ = ("localvars", "loc_proxy")
 
 
 class proscenium:
@@ -60,7 +60,7 @@ class localvars:
         return vars
 
     def __get__(self):
-        return object.__getattribute__(self, "current_vars")
+        return object.__getattribute__(self, "current_vars")()
 
     def __setitem__(self, key, val):
         return object.__getattribute__(self, "current_vars")().__setitem__(key, val)
@@ -79,3 +79,32 @@ class localvars:
 
     def __delattr__(self, name):
         return object.__getattribute__(self, "current_vars")().__delattr__(name)
+
+
+class loc_proxy:
+    def __init__(self, ctx, key):
+        self.__ctx__ = ctx
+        self.__key__ = key
+
+    def __proxy_obj__(self):
+        local = object.__getattribute__(self.__ctx__, "__get__")()
+        return dict.__getitem__(local, self.__key__)
+
+    def __get__(self):
+        return self.__proxy_obj__()
+
+    def __set__(self, val):
+        local = object.__getattribute__(self.__ctx__, "__get__")()
+        return dict.__setitem__(local, self.__key__, val)
+
+    def __setitem__(self, key, val):
+        proxy = object.__getattribute__(self, "__proxy_obj__")()
+        return proxy.__setitem__(key, val)
+
+    def __getitem__(self, key):
+        proxy = object.__getattribute__(self, "__proxy_obj__")()
+        return proxy.__getattribute__(key)
+
+    def __delitem__(self, key):
+        proxy = object.__getattribute__(self, "__proxy_obj__")()
+        return proxy.__delitem__(key)

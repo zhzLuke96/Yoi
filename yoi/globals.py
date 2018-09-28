@@ -1,7 +1,8 @@
-from .localvars import localvars
+from .localvars import localvars, loc_proxy
 
-__all__ = ("g","request","session")
+__all__ = ("g", "request", "session")
 
 g = localvars()
-request = localvars()
-session = localvars()
+app_ctx = localvars()
+request = loc_proxy(app_ctx, "request")
+session = loc_proxy(app_ctx, "session")
