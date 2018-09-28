@@ -8,6 +8,10 @@ __all__ = ("Application",)
 
 
 def call_warpper(callback, request, args):
+    """
+    change the calling policy according to the parameters of callback function
+    *beautiful code ,oopssssssss
+    """
     varnames = callback.__code__.co_varnames
     argcount = callback.__code__.co_argcount
     if argcount != 0 and varnames[0] == "request":
@@ -15,18 +19,28 @@ def call_warpper(callback, request, args):
     return callback(*args)
 
 
-def set_globals(key, value):
-    from .globals import g
-    g[key] = value
+def updata_localvars(environ, cur_request):
+    """
+    ctx__local power by asyncio_current_task XD
+    """
+    from .globals import g, session, request
+    g["environ"] = environ
+    g["request"] = cur_request
+    request = cur_request
+    g["session"] = cur_request.session
+    session = cur_request.session
 
 
 class Application(object):
+    """
+    wsgi application class
+    """
     def __init__(self, router=Router(), session_factroy=factory_simple(), config=dict(), **kwargs):
         self.router = router
         self.session_pool = session_factroy
-        self.config = config
+        # self.config = config
         self._error_resp_table = dict(default="<h1>Not Found</h1>")
-        set_globals("config", config)
+        # set_globals("config", config)
 
     def errorhandler(self, status_code):
         def _(fn):
@@ -36,9 +50,7 @@ class Application(object):
     async def async_call(self, environ, start_response):
         request = Request(environ, self.session_pool)
         # updata globals value
-        set_globals("environ", environ)
-        set_globals("request", request)
-        set_globals("session", request.session)
+        updata_localvars(environ, request)
         try:
             # exec_match
             callback, args = self.router.match(request.path, request.method)
@@ -51,22 +63,21 @@ class Application(object):
             response.add_header(
                 'Set-Cookie', session_cookie_string(request.session.sid))
         except NotFoundError:
-            msg = self._error_resp_table.get("404",self._error_resp_table["default"])
+            msg = self._error_resp_table.get(
+                "404", self._error_resp_table["default"])
             if callable(msg):
                 msg = msg()
-            response = Response(msg ,status=404)
+            response = Response(msg, status=404)
         # print(response.headers)
         start_response(response.status, response.headers.items())
         return iter(response)
 
     def __call__(self, environ, start_response):
-        # from pprint import pprint; pprint(environ)
+        """
+        * for compatibility retention methods, if code review, you can skip this paragraph at willf.
+        """
 
         request = Request(environ, self.session_pool)
-        # updata globals value
-        set_globals("environ", environ)
-        set_globals("request", request)
-        set_globals("session", request.session)
         try:
             # exec_match
             callback, args = self.router.match(request.path, request.method)
@@ -79,10 +90,11 @@ class Application(object):
             response.add_header(
                 'Set-Cookie', session_cookie_string(request.session.sid))
         except NotFoundError:
-            msg = self._error_resp_table.get("404",self._error_resp_table["default"])
+            msg = self._error_resp_table.get(
+                "404", self._error_resp_table["default"])
             if callable(msg):
                 msg = msg()
-            response = Response(msg ,status=404)
+            response = Response(msg, status=404)
         # print(response.headers)
         start_response(response.status, response.headers.items())
         return iter(response)

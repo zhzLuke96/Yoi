@@ -14,14 +14,16 @@ Asynchronous HTTP server framework for asyncio(come soon) and Python
 - [x] asyncio_server
 - [x] asyncio_appliction
 - [x] errorhandler
-- [ ] mimetype_waring
+- [x] safe_contentext => g,request,session(not ctx_stack)
+- [ ] config reader
+- [ ] ~~mimetype_waring~~
 - [ ] more_Type: json
 - [ ] router for varnames
 - [ ] cache_setting
 - [ ] cache_response
 
-> log 18/9/26:
-> <br>asyncio server done.
+> log 18/9/28:
+> <br>ctx & coro is runtime-safe now.
 > <br>
 
 
@@ -30,8 +32,11 @@ come soon..
 
 # example
 ```python
-# router = Router()
+from yoi.application import Application
+from yoi.globals import g, request as cur_request
 app = Application()
+
+online_table = dict()
 
 @app.Router(r"/?$", r"/home/?$")
 async def index():
@@ -45,24 +50,31 @@ async def login(request):
     else:
         name = request.from["name"]
         tags = request.from["tags"]
-    g["online"][g["session"].sid](str(datetime.now())[:-7], (name,tags))
-    # return f"<h1>hello {name}!</h1><p>you like: {tags}</p>"
+    online_table[g["session"].sid](str(datetime.now())[:-7], (name,tags))
     return "success"
 
 
 @app.Router(r"/delay_exit/?$")
 async def delay_exit():
     await asyncio.sleep(60)
-    del g["online"][g["session"].sid]
+    del online_table[g["session"].sid]
     return "success"
 
 @app.errorhandler("404")
 def not_found():
     return f"<h1>Not Found 404</h1><p>server on {platform.python_version()}</p>"
 
+if __name__ == '__main__':
+    from yoi.server.aio_wsgiServer import WSGIServer
+    sev = WSGIServer(app, "localhost", 8000)
+    sev.run_forever()
+
 ```
 
 # 后
 想融合flask和aiohttp于是写了这个东西
 
-more 2 [aioWebpy](https://www.github.com/zhzluke96)
+next wait [aioWebpy](https://www.github.com/zhzluke96)
+
+> 如果你正在写一个web应用，你可能会需要[这个](https://github.com/zhzLuke96/jsonflow)
+> <br>像graphql一样写应用(雾)

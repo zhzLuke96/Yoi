@@ -1,26 +1,28 @@
-from yoi.application import Application
 import time
 import asyncio
 import datetime
 import platform
 
+from yoi.application import Application
+from yoi.globals import g, request as cur_request
+
 app = Application()
 
 
 @app.router(r"^/sleep/(.+)/?$", methods=["GET"])
-async def index(request, timer):
+async def sleep(request, timer):
     time.sleep(int(timer))
-    return f"server sleep {timer}s \n {datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')}"
+    return f"server sleep {timer}s \n {datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')} \n{cur_request.args}\n{request.args}\n{hash(asyncio.Task.current_task(asyncio.get_event_loop()))}"
 
 
 @app.router(r"^/aiosleep/(.+)/?$", methods=["GET"])
-async def index(timer):
+async def aiosleep(request, timer):
     await asyncio.sleep(int(timer))
-    return f"server async sleep {timer}s \n {datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')}"
+    return f"server sleep {timer}s \n {datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')} \n{cur_request.args}\n{request.args}\n{hash(asyncio.Task.current_task(asyncio.get_event_loop()))}"
 
 
 @app.router(r"^/do/?$", methods=["GET"])
-async def index():
+async def do():
     return f"server do something"
 
 @app.errorhandler("404")
