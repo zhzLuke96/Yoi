@@ -1,6 +1,9 @@
+"""
+Achieve a safe coroutine global variable operation, which is a relatively simplified ctx module in flask
+"""
 import asyncio
 
-__all__ = ("localvars", "loc_proxy")
+__all__ = ("localvars", "loc_proxy", "set_proxy")
 
 
 class proscenium:
@@ -82,20 +85,33 @@ class localvars:
 
 
 class loc_proxy:
+    """
+    Proxy object, its operation behavior will be mapped to target item of corresponding local object(Current coroutine)
+
+    eg:
+        app_ctx = localvars()
+        request = loc_proxy(app_ctx, "request")
+        session = loc_proxy(app_ctx, "session")
+    """
     def __init__(self, ctx, key):
-        self.__ctx__ = ctx
-        self.__key__ = key
+        object.__setattr__(self, "__ctx__", ctx)
+        object.__setattr__(self, "__key__", key)
 
     def __proxy_obj__(self):
-        local = object.__getattribute__(self.__ctx__, "__get__")()
-        return dict.__getitem__(local, self.__key__)
+        ctx = object.__getattribute__(self, "__ctx__")
+        local = object.__getattribute__(ctx, "__get__")()
+        key = object.__getattribute__(self, "__key__")
+        return dict.__getitem__(local, key)
+        # return local[key]
 
     def __get__(self):
         return self.__proxy_obj__()
 
     def __set__(self, val):
-        local = object.__getattribute__(self.__ctx__, "__get__")()
-        return dict.__setitem__(local, self.__key__, val)
+        ctx = object.__getattribute__(self, "__ctx__")
+        local = object.__getattribute__(ctx, "__get__")()
+        key = object.__getattribute__(self, "__key__")
+        return dict.__setitem__(local, key, val)
 
     def __setitem__(self, key, val):
         proxy = object.__getattribute__(self, "__proxy_obj__")()
@@ -103,8 +119,28 @@ class loc_proxy:
 
     def __getitem__(self, key):
         proxy = object.__getattribute__(self, "__proxy_obj__")()
-        return proxy.__getattribute__(key)
+        return proxy.__getitem__(key)
 
     def __delitem__(self, key):
         proxy = object.__getattribute__(self, "__proxy_obj__")()
         return proxy.__delitem__(key)
+
+    def __getattribute__(self, name):
+        proxy = object.__getattribute__(self, "__proxy_obj__")()
+        return proxy.__getattribute__(name)
+
+    def __setattr__(self, name, val):
+        proxy = object.__getattribute__(self, "__proxy_obj__")()
+        return proxy.__setattr__(name, val)
+
+    def __delattr__(self, name):
+        proxy = object.__getattribute__(self, "__proxy_obj__")()
+        return proxy.__delattr__(name)
+
+
+def set_proxy(proxy, val):
+    """
+    Set proxied object by '__set__' function instead of using dot
+    """
+    setter = object.__getattribute__(proxy, "__set__")
+    return setter(val)

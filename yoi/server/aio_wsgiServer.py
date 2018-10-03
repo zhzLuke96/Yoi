@@ -26,7 +26,7 @@ class WSGIServer(object):
         server = self.loop.run_until_complete(coro)
 
         # Serve requests until Ctrl+C is pressed
-        print('Serving on {}'.format(server.sockets[0].getsockname()))
+        # print('Serving on {}'.format(server.sockets[0].getsockname()))
         try:
             self.loop.run_forever()
         except KeyboardInterrupt:

@@ -6,7 +6,7 @@ Asynchronous HTTP server framework for asyncio and Python
 - [x] router.static_folder
 - [x] globals.cookies
 - [x] globals.session
-- [x] globals.server_session (ip_agent)
+- [x] ~~globals.server_session (ip_agent)~~
 - [x] better globals
 - [x] better session (httponly max-age)
 - [x] more_method: post put del...
@@ -14,7 +14,7 @@ Asynchronous HTTP server framework for asyncio and Python
 - [x] asyncio_server
 - [x] asyncio_appliction
 - [x] errorhandler
-- [x] safe_contentext => g,request,session(not ctx_stack)
+- [x] safe_context => g,request,session(not ctx_stack)
 - [x] localvars_proxy Class => request,session
 - [ ] config reader
 - [ ] ~~mimetype_waring~~
@@ -23,13 +23,9 @@ Asynchronous HTTP server framework for asyncio and Python
 - [ ] cache_setting
 - [ ] cache_response
 
-> log 18/9/28:
-> <br>ctx & coro is runtime-safe now.
+> log 18/10/03:
+> <br>bug gone.
 > <br>
-
-
-# asyncio
-come soon..
 
 # example
 ```python
@@ -46,19 +42,19 @@ async def index():
 @app.Router(r"/login/?$", methods = ["GET","POST"])
 async def login():
     if request.method is "GET":
-        name = request["args"]["name"]
-        tags = request["args"]["tags"]
+        name = request.args["name"]
+        tags = request.args["tags"]
     else:
-        name = request["from"]["name"]
-        tags = request["from"]["tags"]
-    online_table[session["sid"]](str(datetime.now())[:-7], (name,tags))
+        name = request.from["name"]
+        tags = request.from["tags"]
+    online_table[session.sid](str(datetime.now())[:-7], (name,tags))
     return "success"
 
 
 @app.Router(r"/delay_exit/?$")
 async def delay_exit():
     await asyncio.sleep(60)
-    del online_table[session["sid"]]
+    del online_table[session.sid]
     return "success"
 
 @app.errorhandler("404")
