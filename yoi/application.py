@@ -18,10 +18,10 @@ def call_warpper(callback, request, args):
         return callback(request, *args)
     return callback(*args)
 
+
 async def async_call_wapper(callback, request, args):
     """
-    change the calling policy according to the parameters of callback function
-    *beautiful code ,oopssssssss
+    async -> call_warpper
     """
     varnames = callback.__code__.co_varnames
     argcount = callback.__code__.co_argcount
@@ -34,6 +34,7 @@ async def async_call_wapper(callback, request, args):
         if argcount != 0 and varnames[0] == "request":
             return callback(request, *args)
         return callback(*args)
+
 
 def updata_localvars(environ, cur_request):
     """
@@ -53,6 +54,7 @@ class Application(object):
     """
     wsgi application class
     """
+
     def __init__(self, router=Router(), session_factroy=factory_simple(), config=dict(), **kwargs):
         self.router = router
         self.session_pool = session_factroy
@@ -113,6 +115,5 @@ class Application(object):
             if callable(msg):
                 msg = msg()
             response = Response(msg, status=404)
-        # print(response.headers)
         start_response(response.status, response.headers.items())
         return iter(response)

@@ -2,31 +2,43 @@
 from __future__ import unicode_literals
 
 import asyncio
-from io import StringIO
+from io import StringIO, BytesIO
 import sys
 import datetime
 import platform
 
-__version__ = '0.1'
+import h11
+
+__version__ = '0.2'
+
+__all__ = ("WSGIServer",)
+
+
+def _partition_header(stream):
+    return stream.split(b'\r\n\r\n')[0]
 
 
 class WSGIServer(object):
     server_version = "asyncWSGIServer/" + __version__
     server_platform = "Python/" + platform.python_version()
 
-    recv_buff_size = 1024
+    # 5mb
+    recv_buff_size = 65535
 
     def __init__(self, app, host, port, loop=asyncio.get_event_loop()):
         self.application, self.host, self.port = app, host, port
         self.loop = loop
+        self.chunk_size = None
+
+    def set_chunk_size(self, val):
+        self.chunk_size = val
+        return self
 
     def run_forever(self):
         coro = asyncio.start_server(
             self.handle_sev, self.host, self.port, loop=self.loop)
         server = self.loop.run_until_complete(coro)
 
-        # Serve requests until Ctrl+C is pressed
-        # print('Serving on {}'.format(server.sockets[0].getsockname()))
         try:
             self.loop.run_forever()
         except KeyboardInterrupt:
@@ -40,12 +52,22 @@ class WSGIServer(object):
             '%Y-%m-%d %H:%M:%S'), info, status, str(addr[0]) + ":" + str(addr[1]), res_length))
 
     async def handle_sev(self, reader, writer):
-        data = await reader.read(self.recv_buff_size)
-        message = data.decode()
+        chunk_size = self.chunk_size if self.chunk_size is not None else self.recv_buff_size
+        empty_bytes = b''
+        data = empty_bytes
+        while True:
+            chunk = await reader.read(chunk_size)
+            await asyncio.sleep(0.05)
+            # switch coro
+            data += chunk
+            if data.count(b"WebKitFormBoundary") != 0 and data[-4:] != b"--\r\n":
+                continue
+            if len(chunk) < chunk_size:
+                break
+        message = _partition_header(data).decode()
         addr = writer.get_extra_info('peername')
-        # print("Received %r from %r" % (message, addr))
-
-        app_data, info = await self._on_read(message, addr)
+        # print("Received %r from %r" % (message, addr)
+        app_data, info = await self._on_read(data, addr)
         resp = self._on_write(app_data, info[1], info[0])
 
         self.logging(addr, message.splitlines()[0], info[0], len(resp))
@@ -55,10 +77,10 @@ class WSGIServer(object):
         # print("Close the client socket")
         writer.close()
 
-    async def _on_read(self, msg, addr):
-        lines = msg.splitlines()
+    async def _on_read(self, data, addr):
+        lines = _partition_header(data).decode().splitlines()
         request = self.get_url_parameter(lines)
-        env = self.get_environ(request, msg, addr)
+        env = self.get_environ(request, data, addr)
         start, ret = self.start_response()
         app_data = await self.application.async_call(
             env, start)
@@ -72,7 +94,7 @@ class WSGIServer(object):
             response += '{0}: {1}\r\n'.format(*header)
         response += '\r\n'
         for data in app_data:
-            response += data if isinstance(data,str) else data.decode()
+            response += data if isinstance(data, str) else data.decode()
         return response
 
     def get_url_parameter(self, request_lines):
@@ -100,7 +122,7 @@ class WSGIServer(object):
             # ....
             'wsgi.version': (1, 0),
             'wsgi.url_scheme': 'http',
-            'wsgi.input': StringIO(request_data),
+            'wsgi.input': BytesIO(request_data),
             'wsgi.errors': sys.stderr,
             'wsgi.multithread': False,
             'wsgi.multiprocess': False,
@@ -110,14 +132,15 @@ class WSGIServer(object):
             'PATH_INFO': path,
             'SERVER_NAME': self.host,
             'SERVER_PORT': self.port,
-            'CONTENT_TYPE': request_dict.get('content-type', 'text/plain'),
-            'CONTENT_LENGTH': request_dict.get('content-length', '')
+            'CONTENT_TYPE': request_dict.get('Content-Type', 'text/plain'),
+            'CONTENT_LENGTH': request_dict.get('Content-Length', '')
         }
         for k, v in request_dict.items():
             k = k.replace('-', '_').upper()
             v = v.strip()
             if k in env:
-                continue                    # skip content length, type,etc.
+                # cover (skip) content length, type,etc.
+                env[k] = v
             if 'HTTP_' + k in env:
                 # comma-separate multiple headers
                 env['HTTP_' + k] += ',' + v
@@ -143,6 +166,8 @@ class WSGIServer(object):
 
         return _start, setted
 
+# --------
+# demo app
 
 async def application(environ, start_response):
     # import time

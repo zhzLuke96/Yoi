@@ -20,6 +20,7 @@ class Router(object):
     def add_static_folder(self, pattern, folder_name):
         if folder_name[-1] != "/":
             folder_name += "/"
+
         def _(request, file_path):
             if file_path is None or file_path == "":
                 file_path = "index.html"

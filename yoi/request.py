@@ -10,7 +10,7 @@ session_key = "_session_ID_"
 
 
 def _to_unicode(s, encoding='utf-8'):
-    if isinstance(s,str):
+    if isinstance(s, str):
         return s
     return s.decode('utf-8')
 
@@ -19,6 +19,7 @@ class MultipartFile(object):
     def __init__(self, storage):
         self.filename = _to_unicode(storage.filename)
         self.file = storage.file
+
 
 def ck_parse(ck_string):
     if len(ck_string) < 3 or "=" not in ck_string:
@@ -46,7 +47,6 @@ class Request(object):
             if item.filename:
                 return MultipartFile(item)
             return _to_unicode(item.value)
-
         fs = FieldStorage(
             fp=self._environ['wsgi.input'], environ=self._environ, keep_blank_values=True)
         self._fs = fs
