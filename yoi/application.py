@@ -18,6 +18,22 @@ def call_warpper(callback, request, args):
         return callback(request, *args)
     return callback(*args)
 
+async def async_call_wapper(callback, request, args):
+    """
+    change the calling policy according to the parameters of callback function
+    *beautiful code ,oopssssssss
+    """
+    varnames = callback.__code__.co_varnames
+    argcount = callback.__code__.co_argcount
+    import asyncio
+    if asyncio.iscoroutinefunction(callback):
+        if argcount != 0 and varnames[0] == "request":
+            return await callback(request, *args)
+        return await callback(*args)
+    else:
+        if argcount != 0 and varnames[0] == "request":
+            return callback(request, *args)
+        return callback(*args)
 
 def updata_localvars(environ, cur_request):
     """
@@ -57,7 +73,7 @@ class Application(object):
             # exec_match
             callback, args = self.router.match(request.path, request.method)
 
-            user_response = await call_warpper(callback, request, args)
+            user_response = await async_call_wapper(callback, request, args)
             # exec_match EOF
 
             response = user_response if isinstance(
