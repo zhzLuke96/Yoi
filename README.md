@@ -16,6 +16,7 @@ Asynchronous HTTP server framework for asyncio and Python
 - [x] errorhandler
 - [x] safe_context => g,request,session(not ctx_stack)
 - [x] localvars_proxy Class => request,session
+- [ ] aiohttp_lite
 - [ ] config reader
 - [ ] ~~mimetype_waring~~
 - [ ] more_Type: json
@@ -23,9 +24,9 @@ Asynchronous HTTP server framework for asyncio and Python
 - [ ] cache_setting
 - [ ] cache_response
 
-> log 18/10/03:
-> <br>bug gone.
-> <br>
+> log 18/10/27:
+> <br>+proj template.
+> <br>+\[bug] aio_wsgiServer.py line 79
 
 # example
 ```python
